@@ -1,5 +1,5 @@
 """The Game of Hog."""
-
+import functools
 from dice import four_sided, six_sided, make_test_dice
 from ucb import main, trace, log_current_line, interact
 
@@ -19,16 +19,44 @@ def roll_dice(num_rolls, dice=six_sided):
     assert type(num_rolls) == int, 'num_rolls must be an integer.'
     assert num_rolls > 0, 'Must roll at least once.'
     # BEGIN Question 1
-    total_score = 0
+    score_arr = []
     for i in range(0, num_rolls):
         current_score = dice()
-        if current_score == 1:
-            return 0
-        else:
-            total_score += current_score
+        score_arr.append(current_score)
+    if 1 in score_arr:
+        return score_arr.count(1)
+    else:
+        return functools.reduce(lambda x, y: x+y, score_arr)
+        
     return total_score
     # END Question 1
 
+# print(roll_dice(2, make_test_dice(4,6,1)))
+# 10
+# print(roll_dice(3, make_test_dice(4, 6, 1)))
+# 1
+# print(roll_dice(4, make_test_dice(4, 6, 1, 1)))
+# 2
+
+def free_bacon(opponent_score):
+    if opponent_score < 10:
+        return opponent_score + 1
+    else:
+        return max(opponent_score % 10, opponent_score // 10) + 1
+
+def is_prime(score):
+    if score == 1:
+        return False
+    for i in range(2, score):
+        if score % i == 0:
+            return False
+    return True
+
+def next_prime(score):
+    next_score = score + 1
+    while not is_prime(next_score):
+        next_score += 1
+    return next_score
 
 def take_turn(num_rolls, opponent_score, dice=six_sided):
     """Simulate a turn rolling NUM_ROLLS dice, which may be 0 (Free bacon).
@@ -42,27 +70,70 @@ def take_turn(num_rolls, opponent_score, dice=six_sided):
     assert num_rolls <= 10, 'Cannot roll more than 10 dice.'
     assert opponent_score < 100, 'The game should be over.'
     # BEGIN Question 2
-    "*** REPLACE THIS LINE ***"
+    if num_rolls == 0:
+        score = free_bacon(opponent_score)
+    else:
+        score = roll_dice(num_rolls, dice)
+    if is_prime(score):
+        score = next_prime(score)
+    return min(score, 25 - num_rolls)
     # END Question 2
 
+# print(take_turn(2, 0, make_test_dice(4, 6, 1)))
+# 10
+# print(take_turn(3, 0, make_test_dice(4, 6, 1)))
+# 1
+# print(take_turn(0, 35))
+# 6
+# print(take_turn(0, 71))
+# 8
+# print(take_turn(0, 7))
+# 8
+# print(take_turn(0, 0))
+# 1
+# print(take_turn(1, 0, make_test_dice(3)))
+# 5
+# print(take_turn(5, 0, make_test_dice(10,2,2,2,3)))
+# 20
+
+def reroll(dice=six_sided):
+    def rerolled():
+        outcome = dice()
+        # print(outcome, "outcome")
+        if outcome % 2 == 0:
+            return outcome
+        else:
+            return dice()
+    return rerolled        
+
+# print(reroll()())
 
 def select_dice(score, opponent_score):
     """Select six-sided dice unless the sum of SCORE and OPPONENT_SCORE is a
     multiple of 7, in which case select four-sided dice (Hog wild).
     """
     # BEGIN Question 3
-    "*** REPLACE THIS LINE ***"
+    if score + opponent_score % 7 == 0:
+        return reroll(four_sided)
+    else:
+        return reroll()
     # END Question 3
-
+# print(select_dice(0,3)())
+# print(select_dice(0,7)())
 
 def is_swap(score0, score1):
     """Returns whether the last two digits of SCORE0 and SCORE1 are reversed
     versions of each other, such as 19 and 91.
     """
     # BEGIN Question 4
-    "*** REPLACE THIS LINE ***"
+    if score0 == score1 * 2 or score1 == score0 * 2:
+        score0, score1 = score1, score0
+    return score0, score1
     # END Question 4
 
+# print(is_swap(1,2))
+# print(is_swap(14,7))
+# print(is_swap(0,7))
 
 def other(who):
     """Return the other player, for a player WHO numbered 0 or 1.
@@ -90,7 +161,8 @@ def play(strategy0, strategy1, score0=0, score1=0, goal=GOAL_SCORE):
     """
     who = 0  # Which player is about to take a turn, 0 (first) or 1 (second)
     # BEGIN Question 5
-    "*** REPLACE THIS LINE ***"
+    while score0 < goal and score1 < goal:
+        who == 0 ? 
     # END Question 5
     return score0, score1
 
